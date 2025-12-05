@@ -13,7 +13,8 @@ class CompaniesController extends Controller
      */
     public function index()
     {
-        //
+        $companies = Companies::paginate(5);
+        return response()->json($companies);
     }
 
     /**

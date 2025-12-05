@@ -10,16 +10,26 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('dashboard', function () {
+        return Inertia::render('Dashboard');
+    })->name('dashboard');
 
-Route::get('company', function () {
-    return Inertia::render('Company');
-})->middleware(['auth', 'verified'])->name('company');
+    Route::get('company', function () {
+        return Inertia::render('Company');
+    })->name('company');
 
-Route::get('employee', function () {
-    return Inertia::render('Employee');
-})->middleware(['auth', 'verified'])->name('employee');
+    Route::get('employee', function () {
+        return Inertia::render('Employee');
+    })->name('employee');
+
+    Route::prefix('api')->namespace('App\Http\Controllers')->group(function(){
+        Route::apiResources([
+            'companies' => 'CompaniesController',
+            'employees' => 'EmployeesController',
+        ]);
+    });
+});
+
 
 require __DIR__.'/settings.php';
