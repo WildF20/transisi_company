@@ -130,6 +130,77 @@ const onSaved = () => {
   fetchEmployees(meta.value.current_page);
 };
 
+const exportPDF = async () => {
+  try {
+    const res = await fetch('/api/employees/export', {
+      method: 'GET',
+      headers: { 'Accept': 'application/pdf' },
+      credentials: 'same-origin',
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      const message = data?.message ?? firstError(data?.errors) ?? 'Failed to export PDF.';
+      showToast({ variant: 'error', title: 'Export failed', message });
+      return;
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'employees.pdf');
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode?.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (e) {
+    showToast({
+      variant: 'error',
+      title: 'Request failed',
+      message: e instanceof Error ? e.message : 'Unexpected error while exporting PDF.',
+    });
+    console.error(e);
+  }
+};
+
+const importXLS = async () => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.xlsx,.xls';
+  input.onchange = async () => {
+    const file = input.files ? input.files[0] : null;
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const token = csrf();
+      const headers: Record<string, string> = { 'Accept': 'application/json' };
+      if (token) headers['X-CSRF-TOKEN'] = token;
+      const res = await fetch('/api/employees/import', {
+        method: 'POST',
+        headers,
+        body: formData,
+        credentials: 'same-origin',
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        const message = data?.message ?? firstError(data?.errors) ?? 'Failed to import employees.';
+        showToast({ variant: 'error', title: 'Import failed', message });
+        return;
+      }
+      showToast({ variant: 'success', title: 'Import successful', message: 'Employees imported successfully.' });
+      fetchEmployees(1);
+    } catch (e) {
+      showToast({
+        variant: 'error',
+        title: 'Request failed',
+        message: e instanceof Error ? e.message : 'Unexpected error while importing.',
+      });
+      console.error(e);
+    }
+  };
+  input.click();
+};
+
 const deleteEmployee = async (id: number) => {
   if (!confirm('Are you sure you want to delete this employee?')) return;
   try {
@@ -226,7 +297,9 @@ const onCancel = () => {
       <div class="flex items-center justify-between mb-4">
         <h1 class="text-2xl font-semibold">Employee</h1>
         <div>
-          <button class="px-3 py-1 rounded bg-green-600 text-white" @click="openNew">New</button>
+          <button class="m-1 px-3 py-1 rounded bg-green-600 text-white" @click="openNew">New</button>
+          <button class="m-1 px-3 py-1 rounded bg-red-800 text-white" @click="exportPDF">Export</button>
+          <button class="m-1 px-3 py-1 rounded bg-green-900 text-white" @click="importXLS">Import</button>
         </div>
       </div>
 
@@ -248,7 +321,7 @@ const onCancel = () => {
 
             <label class="block">
               <div class="text-sm text-neutral-600 mb-1">Company</div>
-              <select v-model="form.company_id" class="w-full text-blackrounded border px-2 py-1">
+              <select v-model="form.company_id" class="w-full rounded border px-2 py-1">
                 <option value="">-- Select company --</option>
                 <option v-for="c in companyOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
               </select>
