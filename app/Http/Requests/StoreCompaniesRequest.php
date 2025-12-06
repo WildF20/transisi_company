@@ -23,9 +23,9 @@ class StoreCompaniesRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'website' => ['nullable', 'url', 'max:255'],
-            'logo' => ['nullable', 'image', 'mimes:png', 'max:2048', 'dimensions:min_width=100,min_height=100'],
+            'email' => ['required', 'email', 'max:255'],
+            'website' => ['required', 'url', 'max:255'],
+            'logo' => ['required', 'image', 'mimes:png', 'max:2048', 'dimensions:min_width=100,min_height=100'],
         ];
     }
 }

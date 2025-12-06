@@ -16,6 +16,16 @@ class CompaniesRepository
         return Companies::find($id);
     }
 
+    public function getList()
+    {
+        return Companies::all()->map(function ($company) {
+            return [
+                'id' => $company->id,
+                'name' => $company->name
+            ];
+        });
+    }
+
     public function create(array $data): Companies
     {
         return Companies::create($data);

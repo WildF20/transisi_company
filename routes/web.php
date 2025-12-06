@@ -28,6 +28,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'companies' => 'CompaniesController',
             'employees' => 'EmployeesController',
         ]);
+
+        Route::get('list', 'EmployeesController@getList');
     });
 });
 
